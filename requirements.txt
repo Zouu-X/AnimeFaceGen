@@ -8,3 +8,5 @@ imageio-ffmpeg
 Pillow
 tqdm
 numpy
+requests
+scipy
