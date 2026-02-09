@@ -45,6 +45,46 @@ def load_generator(model_path, device):
     return G
 
 
+def load_upscaler(device):
+    """Load the Real-ESRGAN anime upscaler."""
+    # Patch for basicsr compatibility with newer torchvision (>=0.20)
+    # where torchvision.transforms.functional_tensor was removed.
+    import importlib
+    try:
+        importlib.import_module("torchvision.transforms.functional_tensor")
+    except ModuleNotFoundError:
+        import types
+        import torchvision.transforms.functional as F
+        mod = types.ModuleType("torchvision.transforms.functional_tensor")
+        mod.rgb_to_grayscale = F.rgb_to_grayscale
+        sys.modules["torchvision.transforms.functional_tensor"] = mod
+
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    from realesrgan import RealESRGANer
+
+    model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=4)
+    model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "checkpoints", "RealESRGAN_x4plus_anime_6B.pth")
+    upsampler = RealESRGANer(
+        scale=4, model_path=model_path, model=model,
+        tile=128, tile_pad=10, pre_pad=10,
+        half=(device != "cpu"), device=torch.device(device),
+    )
+    return upsampler
+
+
+def upscale_batch(upsampler, images):
+    """Upscale a batch of RGB uint8 numpy arrays using Real-ESRGAN.
+
+    Returns a list of upscaled RGB uint8 numpy arrays.
+    """
+    results = []
+    for img in images:
+        img_bgr = img[:, :, ::-1]  # RGB → BGR (RealESRGANer expects BGR)
+        output_bgr, _ = upsampler.enhance(img_bgr, outscale=4)
+        results.append(output_bgr[:, :, ::-1])  # BGR → RGB
+    return results
+
+
 def generate_batch(G, seeds, truncation_psi, device):
     """Generate a batch of images from the given seeds.
 
@@ -120,6 +160,8 @@ def main():
     model_path = download_model()
     print("Loading generator...")
     G = load_generator(model_path, device)
+    print("Loading upscaler...")
+    upsampler = load_upscaler(device)
 
     # Prepare output directory
     os.makedirs(args.output_dir, exist_ok=True)
@@ -137,6 +179,7 @@ def main():
         ):
             batch_seeds = seeds[batch_start : batch_start + args.batch_size]
             images = generate_batch(G, batch_seeds, args.truncation_psi, device)
+            images = upscale_batch(upsampler, images)
 
             for i, img in enumerate(images):
                 sample = {
@@ -146,6 +189,7 @@ def main():
                         {
                             "seed": batch_seeds[i],
                             "truncation_psi": args.truncation_psi,
+                            "upscaled": True,
                         }
                     ).encode("utf-8"),
                 }

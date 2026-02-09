@@ -1,15 +1,4 @@
-# Specs: Generation
-
-## Requirements
-
-### Requirement: Generate 200k Images
-The system SHALL generate widely diverse anime face images using the pre-trained StyleGAN3 model.
-**Reason:** To build a large dataset for downstream tasks.
-
-#### Scenario: Successful batch generation
-- **WHEN** user runs the generation script with `--num_images 200000`
-- **THEN** system generates images and saves them into WebDataset shards
-- **AND** the processes completes without error
+## MODIFIED Requirements
 
 ### Requirement: WebDataset Output
 The system SHALL save generated images in WebDataset format (tar files).
@@ -23,6 +12,8 @@ The system SHALL save generated images in WebDataset format (tar files).
 - **WHEN** generation crosses a 1000-image boundary
 - **THEN** a new tar file is created (e.g. `images-000000.tar`, `images-000001.tar`)
 - **AND** each tar contains paired `.png` (512×512) and `.json` files
+
+## ADDED Requirements
 
 ### Requirement: Upscale Before Save
 The system SHALL upscale generated images from 128×128 to 512×512 before saving to WebDataset.

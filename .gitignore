@@ -3,3 +3,4 @@ __pycache__/
 stylegan3/
 *.pkl
 test_output/
+checkpoints/
