@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec list:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions apply:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:rom1504.github.io)",
+      "Bash(python -m py_compile:*)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+torch
+torchvision
+webdataset
+huggingface_hub
+ninja
+imageio
+imageio-ffmpeg
+Pillow
+tqdm
+numpy
