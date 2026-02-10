@@ -4,3 +4,4 @@ stylegan3/
 *.pkl
 test_output/
 checkpoints/
+openspec/
